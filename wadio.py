@@ -66,22 +66,24 @@ class WadIO:
     space will appear). To get rid of the wasted space, use the
     rewrite() method (which rewrites the entire file)."""
 
-    def __init__(self, openfrom=None):
+    def __init__(self, openfrom=None, mode=None):
         self.basefile = None
         self.issafe = True
         self.header = Header()
         self.entries = []
         if openfrom is not None:
-            self.open(openfrom)
+            self.open(openfrom, mode)
 
-    def open(self, filename):
+    def open(self, filename, mode):
         """Open a WAD file, create a new file if none exists at the path."""
         assert not self.entries
         if self.basefile:
             raise IOError, "The handle is already open"
         # Open an existing WAD
         if os.path.exists(filename):
-            self.basefile = open(filename, 'r+b')
+            if mode is None:
+                mode = 'r+b'
+            self.basefile = open(filename, mode)
             filesize = os.stat(self.basefile.name)[6]
             self.header = h = Header(bytes=self.basefile.read(Header._fmtsize))
             if (not h.type in ("PWAD", "IWAD")) or filesize < 12:
