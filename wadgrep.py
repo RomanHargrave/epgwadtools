@@ -32,6 +32,13 @@ def map_sidedefs_to_linedefs(linedefs):
             result[linedef.back] = i
     return result
 
+def lighting(map_editor):
+    light_levels = {}
+    for sector in map_editor.sectors:
+        light_levels[sector.light] = 1
+    for light_level in sorted(light_levels):
+        print light_level
+    return 0
 
 def texgrep(map_editor, pattern):
     found = False
