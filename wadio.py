@@ -1,4 +1,4 @@
-import os, md5, time
+import os, hashlib, time
 from omg.util import *
 
 Header = make_struct(
@@ -231,7 +231,7 @@ class WadIO:
         fpath = self.basefile.name
         # Write to a temporary file and rename it when done
         # os.tmpnam works too, but gives a security warning
-        tmppath = md5.md5(str(time.time())).hexdigest()[:8] + ".tmp"
+        tmppath = hashlib.md5(str(time.time())).hexdigest()[:8] + ".tmp"
         tmppath = os.path.join(os.path.dirname(fpath), tmppath)
         outwad = create_wad(tmppath)
         for i in range(len(self.entries)):
