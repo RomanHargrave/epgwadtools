@@ -5,25 +5,24 @@ import sys
 
 import omg
 
-def grep(pattern, map_editor):
+def find_texture(pattern, map_editor):
+    """Yield (linedef, sidedef) numbers for sidedefs with a texture.
+
+    Args:
+      pattern: regular expression (case-insensitive) to mach texture name
+      map_editor: MapEditor to search
+    """
     search = re.compile(pattern, re.IGNORECASE).search
     linedefs = map_editor.linedefs
     line_map = map_sidedefs_to_linedefs(linedefs)
-    found = False
     for i, sidedef in enumerate(map_editor.sidedefs):
         linedef_num = line_map[i]
         if search(sidedef.tx_mid):
-            found = True
-            print 'sidedef', i, 'of linedef', linedef_num
+            yield linedef_num, i
             continue
         if linedefs[linedef_num].two_sided:
             if search(sidedef.tx_mid) or search(sidedef.tx_low):
-                found = True
-                print 'sidedef', i, 'of linedef', linedef_num
-    if found:
-        return 0
-    # Traditionally 1, but Python uses that for uncaught exception.
-    return 2
+                yield linedef_num, i
 
 def map_sidedefs_to_linedefs(linedefs):
     result = {}
@@ -33,9 +32,21 @@ def map_sidedefs_to_linedefs(linedefs):
             result[linedef.back] = i
     return result
 
+
+def texgrep(map_editor, pattern):
+    found = False
+    for linedef_num, sidedef_num in find_texture(pattern, map_editor):
+        found = True
+        print 'sidedef', sidedef_num, 'of linedef', linedef_num
+    if found:
+        return 0
+    # Traditionally 1, but Python uses that for uncaught exception.
+    return 2
+
 def main(argv):
     w = omg.WAD(from_file=omg.WadIO(argv[1], mode='rb'))
-    return grep(argv[3], omg.MapEditor(w.maps[argv[2]]))
+    map_editor = omg.MapEditor(w.maps[argv[2]])
+    return globals()[argv[3]](map_editor, *argv[4:])
 
 if __name__ == '__main__':
     sys.exit(main(sys.argv))
