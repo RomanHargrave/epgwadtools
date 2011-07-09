@@ -1,0 +1,131 @@
+#!/usr/bin/python
+
+import errno
+import sys
+
+import omg
+
+def summarize(map_editor, fp):
+    m = map_editor
+    fp.write('Number of sectors: %d\n'
+             'Number of linedefs: %d\n'
+             'Number of sidedefs: %d\n'
+             'Number of vertices: %d\n'
+             'Number of things: %d\n'
+             '\n'
+             % (len(m.sectors), len(m.linedefs), len(m.sidedefs),
+                len(m.vertexes), len(m.things)))
+
+def dump_lines(map_editor, fp):
+    write = fp.write
+    for i, linedef in enumerate(map_editor.linedefs):
+        write('Linedef %d\n' % i)
+        write('Flags: %d %s\n' % (linedef.flags, dump_linedef_flags(linedef)))
+        write('Type: %d\n' % linedef.action)
+        write('Tag: %d\n' % linedef.tag)
+        write('Vertices: %d, %d\n' % (linedef.vx_a, linedef.vx_b))
+        write('First sidedef (%d):\n' % linedef.front)
+        dump_sidedef(map_editor.sidedefs[linedef.front], write)
+        if linedef.two_sided:
+            write('Second sidedef (%d):\n' % linedef.back)
+            dump_sidedef(map_editor.sidedefs[linedef.back], write)
+        write('\n')
+
+LINEDEF_FLAGS = [
+    ('Ma', 'automap'),
+    ('In', 'invisible'),
+    ('So', 'block_sound'),
+    ('Se', 'secret'),
+    ('Lo', 'lower_unpeg'),
+    ('Up', 'upper_unpeg'),
+    ('2S', 'two_sided'),
+    ('Mo', 'block_monsters'),
+    ('Im', 'impassable'),
+]
+
+def dump_linedef_flags(linedef):
+    result = []
+    append = result.append
+    for display, attribute in LINEDEF_FLAGS:
+        if getattr(linedef, attribute):
+            append(display)
+        else:
+            append('--')
+    return ''.join(result)
+
+def dump_sidedef(sidedef, write):
+    write('Upper: %s\n' % sidedef.tx_up)
+    write('Middle: %s\n' % sidedef.tx_mid)
+    write('Lower: %s\n' % sidedef.tx_low)
+    write('X-ofs: %d\n' % sidedef.off_x)
+    write('Y-ofs: %d\n' % sidedef.off_y)
+    write('Sector: %d\n' % sidedef.sector)
+
+def dump_sectors(map_editor, fp):
+    write = fp.write
+    for i, sector in enumerate(map_editor.sectors):
+        write('Sector %d\n' % i)
+        write('Floor: %d %s\n' % (sector.z_floor, sector.tx_floor))
+        write('Ceiling: %d %s\n' % (sector.z_ceil, sector.tx_ceil))
+        write('Light: %d\n' % sector.light)
+        write('Type: %d\n' % sector.type)
+        write('Tag: %d\n' % sector.tag)
+        write('\n')
+
+def dump_things(map_editor, fp):
+    write = fp.write
+    for i, thing in enumerate(map_editor.things):
+        write('Thing %d\n' % i)
+        write('Coordinates: %d, %d\n' % (thing.x, thing.y))
+        write('Type: %d\n' % thing.type)
+        write('Angle: %s\n' % dump_angle(thing.angle))
+        write('Appears when: %s\n' % dump_thing_appears(thing))
+        write('\n')
+
+def dump_angle(angle):
+    if angle < 45:
+        return 'East'
+    if angle < 90:
+        return 'Northeast'
+    if angle < 135:
+        return 'North'
+    if angle < 180:
+        return 'Northwest'
+    if angle < 225:
+        return 'West'
+    if angle < 270:
+        return 'Southwest'
+    if angle < 315:
+        return 'South'
+    return 'Southeast'
+
+def dump_thing_appears(thing):
+    result = []
+    append = result.append
+    if thing.easy:
+        append('D12')
+    if thing.medium:
+        append('D3')
+    if thing.hard:
+        append('D45')
+    if thing.deaf:
+        append('Deaf')
+    if thing.multiplayer:
+        append('Multi')
+    return ' '.join(result)
+
+def main(argv):
+    w = omg.WAD(from_file=omg.WadIO(argv[1], mode='rb'))
+    map_editor = omg.MapEditor(w.maps[argv[2]])
+    try:
+        summarize(map_editor, sys.stdout)
+        dump_sectors(map_editor, sys.stdout)
+        dump_lines(map_editor, sys.stdout)
+        dump_things(map_editor, sys.stdout)
+    except IOError, e:
+        if e.errno != errno.EPIPE:
+            raise
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))
