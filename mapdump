@@ -24,7 +24,7 @@ def dump_lines(map_editor, fp):
     write = fp.write
     for i, linedef in enumerate(map_editor.linedefs):
         write('Linedef %d\n' % i)
-        write('Flags: %d %s\n' % (linedef.flags, dump_linedef_flags(linedef)))
+        write('Flags: %2d %s\n' % (linedef.flags, dump_linedef_flags(linedef)))
         write('Type: %d %s\n'
               % (linedef.action, omg.lineinfo.decode(linedef.action)))
         write('Tag: %d\n' % linedef.tag)
