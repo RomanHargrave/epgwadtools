@@ -5,6 +5,10 @@ import sys
 
 import omg
 
+# lineinfo has both "NO ACTION" and "" for 0, but the former goes into
+# num2desc; stupid.
+omg.lineinfo.num2desc[0] = ""
+
 def summarize(map_editor, fp):
     m = map_editor
     fp.write('Number of sectors: %d\n'
@@ -21,7 +25,8 @@ def dump_lines(map_editor, fp):
     for i, linedef in enumerate(map_editor.linedefs):
         write('Linedef %d\n' % i)
         write('Flags: %d %s\n' % (linedef.flags, dump_linedef_flags(linedef)))
-        write('Type: %d\n' % linedef.action)
+        write('Type: %d %s\n'
+              % (linedef.action, omg.lineinfo.decode(linedef.action)))
         write('Tag: %d\n' % linedef.tag)
         write('Vertices: %d, %d\n' % (linedef.vx_a, linedef.vx_b))
         write('First sidedef (%d):\n' % linedef.front)
@@ -77,7 +82,8 @@ def dump_things(map_editor, fp):
     for i, thing in enumerate(map_editor.things):
         write('Thing %d\n' % i)
         write('Coordinates: %d, %d\n' % (thing.x, thing.y))
-        write('Type: %d\n' % thing.type)
+        write('Type: %d %s\n'
+              % (thing.type, omg.thinginfo.all_num2desc.get(thing.type, '')))
         write('Angle: %s\n' % dump_angle(thing.angle))
         write('Appears when: %s\n' % dump_thing_appears(thing))
         write('\n')
