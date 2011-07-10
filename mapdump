@@ -114,14 +114,22 @@ def dump_thing_appears(thing):
         append('Multi')
     return ' '.join(result)
 
+def dump_map(map_name, map_object, fp):
+    map_editor = omg.MapEditor(map_object)
+    fp.write('Map: %s\n' % map_name)
+    summarize(map_editor, sys.stdout)
+    dump_sectors(map_editor, sys.stdout)
+    dump_lines(map_editor, sys.stdout)
+    dump_things(map_editor, sys.stdout)
+
 def main(argv):
     w = omg.WAD(from_file=omg.WadIO(argv[1], mode='rb'))
-    map_editor = omg.MapEditor(w.maps[argv[2]])
     try:
-        summarize(map_editor, sys.stdout)
-        dump_sectors(map_editor, sys.stdout)
-        dump_lines(map_editor, sys.stdout)
-        dump_things(map_editor, sys.stdout)
+        if len(argv) < 3:
+            for map_name, map_object in w.maps.items():
+                dump_map(map_name, map_object, sys.stdout)
+        else:
+            dump_map(argv[2], w.maps[argv[2]], sys.stdout)
     except IOError, e:
         if e.errno != errno.EPIPE:
             raise
