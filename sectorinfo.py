@@ -1,7 +1,5 @@
 """Map sector types to descriptive strings."""
 
-all_desc2num = {}
-
 all_num2desc = {
     0:   "Normal",
     1:   "Light blinks randomly",
