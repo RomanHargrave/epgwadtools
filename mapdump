@@ -4,6 +4,9 @@ import errno
 import sys
 
 import omg
+import omg.lineinfo
+import omg.sectorinfo
+import omg.thinginfo
 
 # lineinfo has both "NO ACTION" and "" for 0, but the former goes into
 # num2desc; stupid.
@@ -73,7 +76,8 @@ def dump_sectors(map_editor, fp):
         write('Floor: %d %s\n' % (sector.z_floor, sector.tx_floor))
         write('Ceiling: %d %s\n' % (sector.z_ceil, sector.tx_ceil))
         write('Light: %d\n' % sector.light)
-        write('Type: %d\n' % sector.type)
+        write('Type: %d %s\n'
+              % (sector.type, omg.sectorinfo.all_num2desc.get(sector.type, '')))
         write('Tag: %d\n' % sector.tag)
         write('\n')
 
